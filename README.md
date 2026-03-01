@@ -1,65 +1,89 @@
-LangChain LCEL & Runnable Patterns
-This repository is a deep dive into LangChain Expression Language (LCEL) and the various Runnable primitives. It demonstrates how to build modular, readable, and efficient AI chains using the pipe (|) operator.
+Markdown
+# 🦜 Mastering LangChain: Open Source LCEL & Runnables
 
-🧩 Core Concepts Covered
-The project explores the following Runnable types and their specific roles in the LangChain ecosystem:
+This repository is a comprehensive engineering suite for building modular AI workflows using **LangChain Expression Language (LCEL)**. Unlike standard tutorials, this project is built for **Open Source LLMs** (Llama 3, Mistral, etc.), focusing on local inference and high-performance data orchestration.
 
-1. RunnableSequence
-The backbone of LCEL. It allows you to pipe the output of one component directly into the next.
+---
 
-Pattern: Input -> Prompt -> LLM -> OutputParser
+## 🏗️ The Four Pillars of Runnables
 
-Syntax: chain = prompt | model | parser
+This project provides deep-dive implementations of the core LangChain primitives. Each one is designed to handle a specific part of the LLM lifecycle.
 
-2. RunnableParallel
-Used to execute multiple tasks simultaneously. It’s perfect for preparing a dictionary of inputs where different keys require different processing.
+### 1. 🔗 RunnableSequence
+The "Pipe" operator (`|`). It chains components where the output of the prompt feeds the LLM, and the LLM output feeds the parser.
+* **Pattern:** `Input -> Prompt -> Local LLM -> OutputParser`
 
-Example: Fetching a document from a database while keeping the original question in a separate key.
+### 2. 🔀 RunnableParallel
+Allows for **concurrent execution**. It is essential for RAG pipelines where you need to fetch context from a vector store while simultaneously passing the user's original question.
+* **Pattern:** `{ "context": retriever, "question": RunnablePassthrough() }`
 
-3. RunnablePassthrough
-A utility to pass data through a step unchanged or to add new keys to the data flow without losing the existing ones.
+### 3. 🛡️ RunnablePassthrough
+A utility to forward data unchanged. It ensures that variables (like metadata or history) are preserved throughout the chain without being lost during transformations.
 
-Example: {"context": retriever, "question": RunnablePassthrough()}
+### 4. 🚦 RunnableBranch
+The routing engine. It acts as an "If-Else" statement, allowing the chain to dynamically choose a path based on the user's input.
+* **Use Case:** Routing "Coding" questions to a Code-Llama model and "General" queries to a Mistral model.
 
-4. RunnableBranch
-The "If-Else" of LangChain. It allows the chain to dynamically choose a path based on the input content.
 
-Use Case: Routing a query to a specific specialized prompt (e.g., "Math" vs "General") based on a classification step.
 
-🛠 Project Structure
-Each folder contains a specific implementation of the LangChain primitives:
+---
 
-/sequence: Linear chains using the | operator.
+## 🛠️ Complete Setup & Installation
 
-/parallel: Multi-tasking chains for data preparation.
+Follow these steps to get the environment running locally with Open Source models.
 
-/passthrough: Examples of state management and data forwarding.
+### 1. Clone & Environment
+```bash
+git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
+cd your-repo-name
+python -m venv venv
+# Activate on Windows:
+venv\Scripts\activate
+# Activate on Mac/Linux:
+source venv/bin/activate
+2. Install All Dependencies
+Bash
+pip install langchain langchain-community langchain-core langchain-ollama
+3. Local LLM Setup (Ollama)
+We use Ollama for local inference to keep data private and costs at zero.
+
+Download Ollama from ollama.com.
+
+Pull your preferred models:
+
+Bash
+ollama pull llama3
+ollama pull mistral
+📂 Project Structure
+/sequence: Linear chains and basic piping.
+
+/parallel: Multi-tasking and dictionary mapping.
+
+/passthrough: State management and data forwarding.
 
 /branch: Conditional routing and decision-making logic.
 
-🚀 Quick Start
-Clone the Repo:
+.gitignore: Pre-configured to keep your environment clean.
 
-Bash
-git clone https://github.com/Vedant4102004/Langchain-Runnables.git
-cd Langchain-Runnables
-Install Dependencies:
+🚀 Quick Code Example (Parallel + Passthrough)
+Python
+from langchain_core.runnables import RunnableParallel, RunnablePassthrough
+from langchain_ollama import OllamaLLM
 
-Bash
-pip install langchain langchain-openai
-Set Environment Variables:
+model = OllamaLLM(model="llama3")
+chain = RunnableParallel(
+    original_input=RunnablePassthrough(),
+    transformation=model
+)
 
-Bash
-export OPENAI_API_KEY='your-key-here'
-Run an Example:
-In this files we used open source LLM's
+# This runs both the model and the passthrough at the same time!
+result = chain.invoke("Explain Quantum Physics in one sentence.")
+print(result)
+💡 Key Features
+Local-First: No API keys required; runs entirely on your hardware.
 
+Async Ready: All chains support .ainvoke() and .astream().
 
-Bash
-python sequence/basic_chain.py
-💡 Why use Runnables?
-Async Support: All Runnables come with built-in ainvoke and astream methods.
+Streaming: Real-time token generation is enabled by default.
 
-Batching: Easily process multiple inputs in parallel with batch.
-
-Observability: Seamless integration with LangSmith for debugging complex flows.
+Developed for the Open Source AI Community.
